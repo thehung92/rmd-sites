@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>sf-tutorial.knit</title>
+
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.13.2/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Collections</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="sf-tutorial.html">sf-tutorial</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+<div class="btn-group pull-right float-right">
+<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu dropdown-menu-right" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
+
+
+
+</div>
+
+
+<style type="text/css">
+.header-section-number::after {
+  content: ".";
+}
+</style>
+<pre class="r"><code># R Markdown template inside ~/.config/rstudio/templates
+# set seed for reproducibility
+set.seed(42)
+
+# Load required library
+packages &lt;- c(&quot;tidyverse&quot;,
+              &quot;data.table&quot;,
+              &quot;janitor&quot;,
+              &quot;openxlsx&quot;,
+              &quot;RColorBrewer&quot;,
+              &quot;patchwork&quot;,
+              &quot;parallel&quot;,
+              &quot;sf&quot;,
+              &quot;tmaptools&quot;)
+
+# load library quietly and stop if library can not be loaded
+for (package in packages) {
+  if (suppressPackageStartupMessages(require(package, character.only = TRUE))) {
+  } else {
+    stop(&quot;install required packages before running script&quot;)
+  }
+}
+
+# source functions if defined in separate file
+files = c(&quot;R/default.fun.R&quot;)
+for (file in files) {
+  if (file.exists(file)) {
+    source(file)
+  }
+}</code></pre>
+<div id="world-map-with-sf-package" class="section level1" number="1">
+<h1><span class="header-section-number">1</span> World map with sf package</h1>
+<p>BACKGROUND: sf object is a special type of data frame with a geometry column that contains the spatial information of the object. The geometry column is a list of simple feature geometry objects. The sf object can be plotted using <code>geom_sf()</code> from ggplot2.</p>
+<pre class="r"><code># function ne_countries() from rnaturalearth package
+sf.world = rnaturalearth::ne_countries(scale = &quot;medium&quot;, returnclass = &quot;sf&quot;)
+
+as_tibble(sf.world)</code></pre>
+<pre><code>## # A tibble: 242 × 169
+##    featurecla   scalerank labelrank sovereignt sov_a3 adm0_dif level type  tlc  
+##    &lt;chr&gt;            &lt;int&gt;     &lt;int&gt; &lt;chr&gt;      &lt;chr&gt;     &lt;int&gt; &lt;int&gt; &lt;chr&gt; &lt;chr&gt;
+##  1 Admin-0 cou…         1         3 Zimbabwe   ZWE           0     2 Sove… 1    
+##  2 Admin-0 cou…         1         3 Zambia     ZMB           0     2 Sove… 1    
+##  3 Admin-0 cou…         1         3 Yemen      YEM           0     2 Sove… 1    
+##  4 Admin-0 cou…         3         2 Vietnam    VNM           0     2 Sove… 1    
+##  5 Admin-0 cou…         5         3 Venezuela  VEN           0     2 Sove… 1    
+##  6 Admin-0 cou…         6         6 Vatican    VAT           0     2 Sove… 1    
+##  7 Admin-0 cou…         1         4 Vanuatu    VUT           0     2 Sove… 1    
+##  8 Admin-0 cou…         1         3 Uzbekistan UZB           0     2 Sove… 1    
+##  9 Admin-0 cou…         1         4 Uruguay    URY           0     2 Sove… 1    
+## 10 Admin-0 cou…         3         6 Federated… FSM           0     2 Sove… 1    
+## # ℹ 232 more rows
+## # ℹ 160 more variables: admin &lt;chr&gt;, adm0_a3 &lt;chr&gt;, geou_dif &lt;int&gt;,
+## #   geounit &lt;chr&gt;, gu_a3 &lt;chr&gt;, su_dif &lt;int&gt;, subunit &lt;chr&gt;, su_a3 &lt;chr&gt;,
+## #   brk_diff &lt;int&gt;, name &lt;chr&gt;, name_long &lt;chr&gt;, brk_a3 &lt;chr&gt;, brk_name &lt;chr&gt;,
+## #   brk_group &lt;chr&gt;, abbrev &lt;chr&gt;, postal &lt;chr&gt;, formal_en &lt;chr&gt;,
+## #   formal_fr &lt;chr&gt;, name_ciawf &lt;chr&gt;, note_adm0 &lt;chr&gt;, note_brk &lt;chr&gt;,
+## #   name_sort &lt;chr&gt;, name_alt &lt;chr&gt;, mapcolor7 &lt;int&gt;, mapcolor8 &lt;int&gt;, …</code></pre>
+<pre class="r"><code># plot the world map with geom_sf
+ggplot() +
+  geom_sf(data = sf.world)</code></pre>
+<p><img src="sf-tutorial_files/figure-html/map-world-1.png" width="672" /></p>
+<p>QUESTION: what is contain in 1 row of the <code>sf.world</code> object?</p>
+<p>ANSWER: 1 row of the <code>sf.world</code> object contain the spatial information of a country. The geometry column contain the representation of the multi-polygon of the country (roughly speaking)</p>
+</div>
+<div id="manipulate-sf-object" class="section level1" number="2">
+<h1><span class="header-section-number">2</span> Manipulate sf object</h1>
+<p>BACKGROUND: <code>sf</code> object can be manipulated using <code>dplyr</code> package. The <code>group_by()</code> function can be used to group the object by a column, and the <code>summarise()</code> function can be used to summarise the object. The <code>st_union()</code> function can be used to union the geometry of the object.</p>
+<pre class="r"><code># manipulate sf object ----
+# group by continent
+sf.continent = sf.world %&gt;%
+  st_make_valid() %&gt;%
+  group_by(continent) %&gt;%
+  summarise(geometry = st_union(geometry))
+
+as_tibble(sf.continent)</code></pre>
+<pre><code>## # A tibble: 8 × 2
+##   continent                                                             geometry
+##   &lt;chr&gt;                                                       &lt;MULTIPOLYGON [°]&gt;
+## 1 Africa                  (((44.45186 -12.07139, 44.4126 -12.09297, 44.40703 -1…
+## 2 Antarctica              (((-45.83418 -60.54346, -45.93481 -60.52656, -45.9563…
+## 3 Asia                    (((42.61045 15.33228, 42.62451 15.36797, 42.60234 15.…
+## 4 Europe                  (((16.66631 42.95991, 16.69639 42.93369, 16.73887 42.…
+## 5 North America           (((-72.91924 18.86147, -73.06914 18.93203, -73.17061 …
+## 6 Oceania                 (((144.7799 13.41113, 144.9408 13.57031, 144.9097 13.…
+## 7 Seven seas (open ocean) (((-5.659717 -15.9709, -5.6625 -15.91279, -5.707861 -…
+## 8 South America           (((-64.58135 -54.75273, -64.6251 -54.77363, -64.68921…</code></pre>
+<pre class="r"><code># plot continent map with geom_sf
+ggplot(sf.continent, aes(fill = continent)) +
+  geom_sf() +
+  theme(legend.position = &quot;bottom&quot;)</code></pre>
+<p><img src="sf-tutorial_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<pre class="r"><code># funny, all of russia is classified as europe # just live with it, that&#39;s the data we have</code></pre>
+<p>QUESTION: Any idea of why there are some distorted horizontal lines on the map?</p>
+<p>ANSWER: The distorted horizontal lines are the results of a polygon crossing the date-line. So ggplot just draw a line across lon:-180:180</p>
+</div>
+<div id="investigate-the-distorted-polygon" class="section level1" number="3">
+<h1><span class="header-section-number">3</span> Investigate the distorted polygon:</h1>
+<p>It cross the date-line at lon=180 or lon=-180</p>
+<div id="create-sf-object-for-a-line-with-projection" class="section level2" number="3.1">
+<h2><span class="header-section-number">3.1</span> Create sf object for a line with projection</h2>
+<p>NOTE: sf have various classes for spatial object, the most common are <code>sfc</code> and <code>sf</code>. <code>sfc</code> is a collection of simple feature geometry objects, while <code>sf</code> is a data frame with a <code>sfc</code> column and other columns that describe the attribute of the geometry.</p>
+<p>THEY ARE NOT EQUIVALENT</p>
+<p>QUESTION: what is the difference between: <code>sfg</code>, <code>sfc</code>, and <code>sf</code>?</p>
+<p>ANSWER:</p>
+<ul>
+<li><code>sfg</code> is a simple feature geometry object</li>
+<li><code>sfc</code> is a list of simple feature geometry objects; with projection, bounding box INFO</li>
+<li><code>sf</code> is a data frame with a <code>sfc</code> column and other columns that describe the attribute of the geometry. IMPORTANT: this is where <code>dplyr</code> function can be used to manipulate the object</li>
+</ul>
+<pre class="r"><code># create a sf line that have lon = 180 from matrix
+sf.line = matrix(c(180, -90, 180, 90), ncol = 2, byrow = TRUE) %&gt;%
+  # convert into simple feature geometry # NOTE: `sfg`
+  st_linestring() %&gt;%
+  # convert into simple feature geometry list column # NOTE: `sfc`
+  st_sfc() %&gt;%
+  # convert into simple feature object # NOTE: `sf`
+  st_sf(crs = 4326)</code></pre>
+</div>
+<div id="run-sf-operation-to-find-which-polygon-cross-the-date-line" class="section level2" number="3.2">
+<h2><span class="header-section-number">3.2</span> Run sf operation to find which polygon cross the date line</h2>
+<p>There are a lot of sf operation that can be used to manipulate or check the spatial object.</p>
+<p>READ MORE on all available geometry function in the cheatsheet of the <code>sf</code> package documentation: <a href="https://r-spatial.github.io/sf/" class="uri">https://r-spatial.github.io/sf/</a></p>
+<pre class="r"><code># which polygon cross the date line
+sf.cross = sf.world %&gt;%
+  # argument sparse = FALSE is required to make the function return a logical vector
+  filter(st_crosses(geometry, sf.line,
+                    sparse = FALSE)) %&gt;%
+  # select only field of interest # reminder that the column `geometry` will always be kept for object of class sf
+  select(geounit, continent)</code></pre>
+<pre><code>## although coordinates are longitude/latitude, st_crosses assumes that they are
+## planar</code></pre>
+<pre><code>## Warning: Using one column matrices in `filter()` was deprecated in dplyr 1.1.0.
+## ℹ Please use one dimensional logical vectors instead.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was generated.</code></pre>
+<pre class="r"><code># print geounit and continent of the polygons that cross the date line
+sf.cross %&gt;% as_tibble()</code></pre>
+<pre><code>## # A tibble: 0 × 3
+## # ℹ 3 variables: geounit &lt;chr&gt;, continent &lt;chr&gt;, geometry &lt;GEOMETRY [°]&gt;</code></pre>
+</div>
+<div id="plot-the-polygon-before-it-is-distorted" class="section level2" number="3.3">
+<h2><span class="header-section-number">3.3</span> Plot the polygon before it is distorted</h2>
+<p>NOTE: this is the sf object, so we can use <code>geom_sf</code> to plot it.</p>
+<p>You will see that we ignore aesthetic mapping in <code>aes()</code> entirely and just used the default options because it convenient</p>
+<pre class="r"><code>ggplot(sf.cross) +
+  geom_sf()</code></pre>
+<p><img src="sf-tutorial_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p>QUESTION</p>
+</div>
+</div>
+<div id="how-do-we-fix-the-distorted-polygon" class="section level1" number="4">
+<h1><span class="header-section-number">4</span> How do we fix the distorted polygon</h1>
+<p>Break up the polygon that cross the date line with <code>st_break_antimeridian</code> function</p>
+<pre class="r"><code># manipulate sf object ----
+# THIS IS THE FIX FOR ST_BREAK_ANTIMERIDIAN
+# turn off the google s2geometry.io library # and use the GEOS library
+sf_use_s2(FALSE)
+# group by continent
+sf.continent = sf.world %&gt;%
+  # this is the fix for st_union ----
+  st_make_valid() %&gt;%
+  group_by(continent) %&gt;%
+  summarise(geometry = st_union(geometry)) %&gt;%
+  # this is the important fix for distorted polygon that cross the date line ----
+  st_break_antimeridian(lon_0 = 0)
+
+# plot continent map with geom_sf
+fig = ggplot(sf.continent, aes(fill = continent)) +
+  geom_sf() +
+  # don&#39;t forget that this is still a ggplot object than can be modified with theme
+  theme(legend.position = &quot;bottom&quot;,
+        panel.background = element_rect(fill = &quot;lightskyblue&quot;))
+fig</code></pre>
+<p><img src="sf-tutorial_files/figure-html/map-fix-1.png" width="672" /></p>
+</div>
+<div id="add-geom_point-layer-to-the-map-ggplot" class="section level1" number="5">
+<h1><span class="header-section-number">5</span> Add geom_point layer to the map (ggplot)</h1>
+<p>Creating sf object for the data is too much WORK. We can just use a data frame with x and y coordinate and use <code>geom_point</code> to plot it.</p>
+<pre class="r"><code># generate random points with x and y coordinate
+# it is saved inside a data frame
+df.coord = tibble(x = runif(10, -180, 180),
+                   y = runif(10, -90, 90))
+df.coord</code></pre>
+<pre><code>## # A tibble: 10 × 2
+##          x      y
+##      &lt;dbl&gt;  &lt;dbl&gt;
+##  1  149.    -7.61
+##  2  157.    39.4 
+##  3  -77.0   78.2 
+##  4  119.   -44.0 
+##  5   51.0   -6.79
+##  6    6.87  79.2 
+##  7   85.2   86.1 
+##  8 -132.   -68.9 
+##  9   56.5   -4.50
+## 10   73.8   10.9</code></pre>
+<pre class="r"><code># add geom_point layer to the map
+fig2 = fig +
+  geom_point(data = df.coord,
+             aes(x = x, y = y),
+             # this is important, make sure this layer don&#39;t inherit the aes from the previous layer
+             inherit.aes = FALSE,
+             color = &quot;red&quot;, size = 3) +
+  # do remember that `df.coord` have no projection, so we need to specify it
+  # easiest way to do is to use coord_sf(default_crs = 4326) # just use the default 4326 for any coordinate without projection crs
+  coord_sf(default_crs = 4326)
+fig2</code></pre>
+<p><img src="sf-tutorial_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+</div>
+<div id="change-the-projection-of-the-map" class="section level1" number="6">
+<h1><span class="header-section-number">6</span> Change the projection of the map</h1>
+<p>I like the Robinson projection, so let’s do this with <code>coord_sf</code></p>
+<p>This can be a little complicated with the way map string work.</p>
+<p>Take a little bit of time and google to get the correct string for the projection you want.</p>
+<div id="robinson-projection" class="section level2" number="6.1">
+<h2><span class="header-section-number">6.1</span> Robinson projection</h2>
+<pre class="r"><code># declare the string for the robinson projection
+robinson_str = &quot;+proj=robin +lon_0=0 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs&quot;
+
+fig2 +
+  coord_sf(crs = robinson_str,
+           default_crs = 4326)</code></pre>
+<pre><code>## Coordinate system already present. Adding new coordinate system, which will
+## replace the existing one.</code></pre>
+<p><img src="sf-tutorial_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+</div>
+<div id="fixing-the-background" class="section level2" number="6.2">
+<h2><span class="header-section-number">6.2</span> Fixing the background</h2>
+<p>LOOK: the map work, but the background do not fit the area of water anymore, because we use <code>theme(panel.background)</code>, which always change the color of the rectangle area.</p>
+<p>BUT: we want to color the oval area of the map.</p>
+<p>QUESTION: how do we fix this?</p>
+<p>ANSWER: The idea is add ANOTHER layer to represent the projected map: make an oval shape with <code>geom_sf</code> and color it.</p>
+<pre class="r"><code># there is a function to create a oval shape in the `tmaptools` package
+sf.ocean = tmaptools::bb_earth(projection = &quot;WGS84&quot;,
+  stepsize = 1,
+  earth.datum = 4326) %&gt;%
+  st_as_sf()
+
+# plot the oval shape as the 1st layer
+fig.rob = ggplot() +
+  # we need alpha = 0.5 because otherwise we cannot see the  lon-lat grid on the panel layer
+  geom_sf(data = sf.ocean, fill = &quot;lightskyblue&quot;, alpha = 0.5) +
+  # add the sf.continent layer
+  geom_sf(data = sf.continent, aes(fill = continent)) +
+  # add the geom_point layer
+  geom_point(data = df.coord,
+             aes(x = x, y = y),
+             inherit.aes = FALSE,
+             color = &quot;red&quot;, size = 3) +
+  # change the projection
+  coord_sf(crs = robinson_str,
+           default_crs = 4326) +
+  # theme for ggplot object
+  theme(legend.position = &quot;bottom&quot;,
+        panel.background = element_blank(),
+        panel.grid = element_line(color = &quot;grey&quot;),
+        axis.title = element_blank())
+fig.rob</code></pre>
+<p><img src="sf-tutorial_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+</div>
+<div id="zoom-in-to-australia-and-change-to-conic-projection" class="section level2" number="6.3">
+<h2><span class="header-section-number">6.3</span> zoom in to Australia and change to conic projection</h2>
+<pre class="r"><code># proj4 string for the conic projection above Australia
+conic_str = &#39;+proj=lcc +lat_1=-18 +lat_2=-36 +lat_0=-25 +lon_0=135 +ellps=aust_SA  +units=m +no_defs&#39;
+
+# bounding box of australia extracted from sf object of countries
+bbox = sf.world %&gt;%
+  filter(geounit == &quot;Australia&quot;) %&gt;%
+  st_bbox()
+bbox</code></pre>
+<pre><code>##      xmin      ymin      xmax      ymax 
+## 112.90820 -54.74922 158.95889 -10.05176</code></pre>
+<pre class="r"><code># plot the map with the new projection
+fig.rob +
+  # change the projection
+  coord_sf(crs = conic_str,
+           default_crs = 4326,
+           xlim = c(bbox$xmin, bbox$xmax), ylim = c(bbox$ymin, bbox$ymax))</code></pre>
+<pre><code>## Coordinate system already present. Adding new coordinate system, which will
+## replace the existing one.</code></pre>
+<p><img src="sf-tutorial_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<p>LOOK at the shape of the longitude and latitude grid, it is CONIC projection. YAY!</p>
+</div>
+</div>
+<div id="idea-for-tutorial" class="section level1" number="7">
+<h1><span class="header-section-number">7</span> Idea for tutorial</h1>
+<p>Extract Singapore from sf.world and plot it on the map with <code>mercator</code> projection</p>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

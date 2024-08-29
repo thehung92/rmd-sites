@@ -1,0 +1,285 @@
+```{css, echo=FALSE}
+.header-section-number::after {
+  content: ".";
+}
+```
+
+```{r}
+# R Markdown template inside ~/.config/rstudio/templates
+# set seed for reproducibility
+set.seed(42)
+
+# Load required library
+packages <- c("tidyverse",
+              "data.table",
+              "janitor",
+              "openxlsx",
+              "RColorBrewer",
+              "patchwork",
+              "parallel",
+              "sf",
+              "tmaptools")
+
+# load library quietly and stop if library can not be loaded
+for (package in packages) {
+  if (suppressPackageStartupMessages(require(package, character.only = TRUE))) {
+  } else {
+    stop("install required packages before running script")
+  }
+}
+
+# source functions if defined in separate file
+files = c("R/default.fun.R")
+for (file in files) {
+  if (file.exists(file)) {
+    source(file)
+  }
+}
+```
+
+
+
+# World map with sf package
+
+BACKGROUND: sf object is a special type of data frame with a geometry column that contains the spatial information of the object. The geometry column is a list of simple feature geometry objects. The sf object can be plotted using `geom_sf()` from ggplot2.
+
+```{r map-world}
+# function ne_countries() from rnaturalearth package
+sf.world = rnaturalearth::ne_countries(scale = "medium", returnclass = "sf")
+
+as_tibble(sf.world)
+
+# plot the world map with geom_sf
+ggplot() +
+  geom_sf(data = sf.world)
+```
+
+QUESTION: what is contain in 1 row of the `sf.world` object?
+
+ANSWER: 1 row of the `sf.world` object contain the spatial information of a country. The geometry column contain the representation of the multi-polygon of the country (roughly speaking)
+
+# Manipulate sf object
+
+BACKGROUND: `sf` object can be manipulated using `dplyr` package. The `group_by()` function can be used to group the object by a column, and the `summarise()` function can be used to summarise the object. The `st_union()` function can be used to union the geometry of the object.
+
+```{r}
+# manipulate sf object ----
+# group by continent
+sf.continent = sf.world %>%
+  st_make_valid() %>%
+  group_by(continent) %>%
+  summarise(geometry = st_union(geometry))
+
+as_tibble(sf.continent)
+
+# plot continent map with geom_sf
+ggplot(sf.continent, aes(fill = continent)) +
+  geom_sf() +
+  theme(legend.position = "bottom")
+# funny, all of russia is classified as europe # just live with it, that's the data we have
+```
+
+QUESTION: Any idea of why there are some distorted horizontal lines on the map?
+
+ANSWER: The distorted horizontal lines are the results of a polygon crossing the date-line. So ggplot just draw a line across lon:-180:180
+
+# Investigate the distorted polygon:
+
+It cross the date-line at lon=180 or lon=-180
+
+## Create sf object for a line with projection
+
+NOTE: sf have various classes for spatial object, the most common are `sfc` and `sf`. `sfc` is a collection of simple feature geometry objects, while `sf` is a data frame with a `sfc` column and other columns that describe the attribute of the geometry.
+
+THEY ARE NOT EQUIVALENT
+
+QUESTION: what is the difference between: `sfg`, `sfc`, and `sf`?
+
+ANSWER:
+
+* `sfg` is a simple feature geometry object
+* `sfc` is a list of simple feature geometry objects; with projection, bounding box INFO
+* `sf` is a data frame with a `sfc` column and other columns that describe the attribute of the geometry. IMPORTANT: this is where `dplyr` function can be used to manipulate the object
+
+```{r}
+# create a sf line that have lon = 180 from matrix
+sf.line = matrix(c(180, -90, 180, 90), ncol = 2, byrow = TRUE) %>%
+  # convert into simple feature geometry # NOTE: `sfg`
+  st_linestring() %>%
+  # convert into simple feature geometry list column # NOTE: `sfc`
+  st_sfc() %>%
+  # convert into simple feature object # NOTE: `sf`
+  st_sf(crs = 4326)
+```
+
+## Run sf operation to find which polygon cross the date line
+
+There are a lot of sf operation that can be used to manipulate or check the spatial object.
+
+READ MORE on all available geometry function in the cheatsheet of the `sf` package documentation: https://r-spatial.github.io/sf/
+
+```{r}
+# which polygon cross the date line
+sf.cross = sf.world %>%
+  # argument sparse = FALSE is required to make the function return a logical vector
+  filter(st_crosses(geometry, sf.line,
+                    sparse = FALSE)) %>%
+  # select only field of interest # reminder that the column `geometry` will always be kept for object of class sf
+  select(geounit, continent)
+
+# print geounit and continent of the polygons that cross the date line
+sf.cross %>% as_tibble()
+```
+
+## Plot the polygon before it is distorted
+
+NOTE: this is the sf object, so we can use `geom_sf` to plot it.
+
+You will see that we ignore aesthetic mapping in `aes()` entirely and just used the default options because it convenient
+
+```{r}
+ggplot(sf.cross) +
+  geom_sf()
+```
+
+QUESTION
+
+
+# How do we fix the distorted polygon
+
+Break up the polygon that cross the date line with `st_break_antimeridian` function
+
+```{r map-fix, message=FALSE, warning=FALSE}
+# manipulate sf object ----
+# THIS IS THE FIX FOR ST_BREAK_ANTIMERIDIAN
+# turn off the google s2geometry.io library # and use the GEOS library
+sf_use_s2(FALSE)
+# group by continent
+sf.continent = sf.world %>%
+  # this is the fix for st_union ----
+  st_make_valid() %>%
+  group_by(continent) %>%
+  summarise(geometry = st_union(geometry)) %>%
+  # this is the important fix for distorted polygon that cross the date line ----
+  st_break_antimeridian(lon_0 = 0)
+
+# plot continent map with geom_sf
+fig = ggplot(sf.continent, aes(fill = continent)) +
+  geom_sf() +
+  # don't forget that this is still a ggplot object than can be modified with theme
+  theme(legend.position = "bottom",
+        panel.background = element_rect(fill = "lightskyblue"))
+fig
+```
+
+# Add geom_point layer to the map (ggplot)
+
+Creating sf object for the data is too much WORK. We can just use a data frame with x and y coordinate and use `geom_point` to plot it.
+
+```{r}
+# generate random points with x and y coordinate
+# it is saved inside a data frame
+df.coord = tibble(x = runif(10, -180, 180),
+                   y = runif(10, -90, 90))
+df.coord
+# add geom_point layer to the map
+fig2 = fig +
+  geom_point(data = df.coord,
+             aes(x = x, y = y),
+             # this is important, make sure this layer don't inherit the aes from the previous layer
+             inherit.aes = FALSE,
+             color = "red", size = 3) +
+  # do remember that `df.coord` have no projection, so we need to specify it
+  # easiest way to do is to use coord_sf(default_crs = 4326) # just use the default 4326 for any coordinate without projection crs
+  coord_sf(default_crs = 4326)
+fig2
+```
+
+# Change the projection of the map
+
+I like the Robinson projection, so let's do this with `coord_sf`
+
+This can be a little complicated with the way map string work.
+
+Take a little bit of time and google to get the correct string for the projection you want.
+
+## Robinson projection
+
+```{r}
+# declare the string for the robinson projection
+robinson_str = "+proj=robin +lon_0=0 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs"
+
+fig2 +
+  coord_sf(crs = robinson_str,
+           default_crs = 4326)
+```
+
+## Fixing the background
+
+LOOK: the map work, but the background do not fit the area of water anymore, because we use `theme(panel.background)`, which always change the color of the rectangle area.
+
+BUT: we want to color the oval area of the map.
+
+QUESTION: how do we fix this?
+
+ANSWER: The idea is add ANOTHER layer to represent the projected map: make an oval shape with `geom_sf` and color it.
+
+```{r}
+# there is a function to create a oval shape in the `tmaptools` package
+sf.ocean = tmaptools::bb_earth(projection = "WGS84",
+  stepsize = 1,
+  earth.datum = 4326) %>%
+  st_as_sf()
+
+# plot the oval shape as the 1st layer
+fig.rob = ggplot() +
+  # we need alpha = 0.5 because otherwise we cannot see the  lon-lat grid on the panel layer
+  geom_sf(data = sf.ocean, fill = "lightskyblue", alpha = 0.5) +
+  # add the sf.continent layer
+  geom_sf(data = sf.continent, aes(fill = continent)) +
+  # add the geom_point layer
+  geom_point(data = df.coord,
+             aes(x = x, y = y),
+             inherit.aes = FALSE,
+             color = "red", size = 3) +
+  # change the projection
+  coord_sf(crs = robinson_str,
+           default_crs = 4326) +
+  # theme for ggplot object
+  theme(legend.position = "bottom",
+        panel.background = element_blank(),
+        panel.grid = element_line(color = "grey"),
+        axis.title = element_blank())
+fig.rob
+```
+
+## zoom in to Australia and change to conic projection
+
+```{r}
+# proj4 string for the conic projection above Australia
+conic_str = '+proj=lcc +lat_1=-18 +lat_2=-36 +lat_0=-25 +lon_0=135 +ellps=aust_SA  +units=m +no_defs'
+
+# bounding box of australia extracted from sf object of countries
+bbox = sf.world %>%
+  filter(geounit == "Australia") %>%
+  st_bbox()
+bbox
+# plot the map with the new projection
+fig.rob +
+  # change the projection
+  coord_sf(crs = conic_str,
+           default_crs = 4326,
+           xlim = c(bbox$xmin, bbox$xmax), ylim = c(bbox$ymin, bbox$ymax))
+```
+
+LOOK at the shape of the longitude and latitude grid, it is CONIC projection. YAY!
+
+# Idea for tutorial
+
+Extract Singapore from sf.world and plot it on the map with `mercator` projection
+
+```{r}
+
+```
+
+

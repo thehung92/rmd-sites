@@ -1,0 +1,29 @@
+---
+title: "My Website"
+author: "Hung Nguyen"
+date: 2024-08-29
+site: bookdown::bookdown_site
+output:
+  bookdown::gitbook:
+    code_folding: hide
+    self_contained: true # self-contained html
+    split_by: rmd # one html file for one rmd file
+    split_bib: false # this will fix the duplicated reference in gitbook 1 pages
+---
+
+Hello, Website!
+
+For more information about simple R Markdown websites, please read the documentation at https://bookdown.org/yihui/rmarkdown/rmarkdown-site.html.
+
+Please also note that simple R Markdown sites are _not_ based on **blogdown**. They are probably good for websites with only a few Rmd documents. For larger-scale and more sophisticated websites (such as blogs), you may want to use **blogdown** instead: https://github.com/rstudio/blogdown.
+
+<!--chapter:end:index.Rmd-->
+
+---
+title: "About This Website"
+---
+
+More about this website.
+
+<!--chapter:end:about.Rmd-->
+
